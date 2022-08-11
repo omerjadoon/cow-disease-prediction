@@ -1,3 +1,4 @@
+
 import 'react-native-gesture-handler';
 import React, { useEffect, useState } from 'react'
 import { DefaultTheme, NavigationContainer } from '@react-navigation/native'
@@ -9,11 +10,13 @@ import { color } from 'react-native-reanimated';
 if (!global.btoa) {  global.btoa = encode }
 if (!global.atob) { global.atob = decode }
 
-import * as tf from '@tensorflow/tfjs';
-import { fetch } from '@tensorflow/tfjs-react-native';
+
 
 import './i18n';
 import { useTranslation, Trans } from 'react-i18next';
+import ImageScreen from './src/screens/ImageScreen/ImageScreen';
+import { AppRegistry } from 'react-native-web';
+
 
 const Stack = createStackNavigator();
 
@@ -85,10 +88,13 @@ export default function App() {
         
         <Stack.Screen name="Home">
             {props => <HomeScreen {...props}  />}
-          </Stack.Screen>
+        </Stack.Screen>
+
+        <Stack.Screen name="Image" component={ImageScreen} />
+        
+       
         
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
-

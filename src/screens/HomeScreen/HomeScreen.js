@@ -27,6 +27,17 @@ export default function HomeScreen(props) {
         }
     }
  
+    const goToImageScreen = () => {
+        
+            props.navigation.navigate('Image')
+        
+    }
+
+    const goToCameraScreen = () => {
+        
+        props.navigation.navigate('Camera')
+    
+}
 
     const renderEntity = ({item, index}) => {
         return (
@@ -58,7 +69,7 @@ export default function HomeScreen(props) {
                 
                 <Box title={t('home.detectfromsymptoms')} imgpath='1'></Box>
                 <Box title={t('home.detectusingcamera')} imgpath='2'></Box>
-                <Box title={t('home.detectusingimage')} imgpath='3'></Box>
+                <Box title={t('home.detectusingimage')} onPress={goToImageScreen} imgpath='3'></Box>
                 <Box title={t('home.pastdetections')} imgpath='4'></Box>
                 <Box title={t('home.settings')} imgpath='5'></Box>
                 <Box title={t('home.logout')} onPress={signOutUser} imgpath='6'></Box>

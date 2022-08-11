@@ -10,7 +10,8 @@ import { useTranslation, Trans } from 'react-i18next';
 
 const lngs = {
     en: { nativeName: 'English' },
-    ur: { nativeName: 'Urdu' }
+    ur: { nativeName: 'Urdu' },
+    
   };
 
 

@@ -28,7 +28,7 @@ export default function RegistrationScreen({navigation}) {
                 const data = {
                     id: uid,
                     email,
-                    fullName,
+                    fullName
                 };
                 const usersRef = firebase.firestore().collection('users')
                 usersRef
@@ -64,6 +64,7 @@ export default function RegistrationScreen({navigation}) {
                     underlineColorAndroid="transparent"
                     autoCapitalize="none"
                 />
+                
                 <TextInput
                     style={styles.input}
                     placeholder={t('auth.email')}
