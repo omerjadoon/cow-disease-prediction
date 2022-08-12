@@ -1,0 +1,2 @@
+To convert h5 model to tfjs format
+tensorflowjs_converter --input_format=keras --weight_shard_size_bytes 30000000 ./model.h5 ./t3

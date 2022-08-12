@@ -16,6 +16,7 @@ import './i18n';
 import { useTranslation, Trans } from 'react-i18next';
 import ImageScreen from './src/screens/ImageScreen/ImageScreen';
 import { AppRegistry } from 'react-native-web';
+import CameraScreen from './src/screens/CameraScreen/CameraScreen';
 
 
 const Stack = createStackNavigator();
@@ -91,6 +92,7 @@ export default function App() {
         </Stack.Screen>
 
         <Stack.Screen name="Image" component={ImageScreen} />
+        <Stack.Screen name="Camera" component={CameraScreen} />
         
        
         

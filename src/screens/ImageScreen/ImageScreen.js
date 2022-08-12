@@ -30,7 +30,7 @@ export default function ImageScreen(props) {
   const [predictions, setPredictions] = useState(null);
   const [imageToAnalyze, setImageToAnalyze] = useState(null);
   
-  
+  var [index, setIndex] = useState(null);
     
 
     const { t, i18n } = useTranslation();
@@ -41,24 +41,7 @@ export default function ImageScreen(props) {
     const user = firebase.auth().currentUser;
 
 
-    const imageToTensor = (rawImageData) => {
-      const { width, height, data } = jpeg.decode(rawImageData, {
-        useTArray: true,
-      }); // return as Uint8Array
-  
-      // Drop the alpha channel info for mobilenet
-      const buffer = new Uint8Array(width * height * 3);
-      let offset = 0; // offset into original data
-      for (let i = 0; i < buffer.length; i += 3) {
-        buffer[i] = data[offset];
-        buffer[i + 1] = data[offset + 1];
-        buffer[i + 2] = data[offset + 2];
-  
-        offset += 4;
-      }
-  
-      return tf.tensor3d(buffer, [height, width, 3]);
-    };
+     
 
     useEffect(() => {
       
@@ -120,7 +103,7 @@ export default function ImageScreen(props) {
           // resize image to avoid out of memory crashes
           const manipResponse = await ImageManipulator.manipulateAsync(
             response.uri,
-            [{ resize: { width: 224, height : 224 } }],
+            [{ resize: { width: 64, height : 64 } }],
             {
               compress: 1,
               format: ImageManipulator.SaveFormat.JPEG,
@@ -141,6 +124,11 @@ export default function ImageScreen(props) {
           // send base64 version to clarifai
           setPredictions(pred)
           console.log(pred);
+          const max = Math.max.apply(null, pred);
+          
+          const index = pred.indexOf(max);
+          setIndex(index)
+          
         }
       } catch (error) {
         console.log(error);
@@ -176,7 +164,7 @@ export default function ImageScreen(props) {
         contentContainerStyle={styles.contentContainer}
       >
         <View style={styles.welcomeContainer}>
-          <Text style={styles.headerText}>Cow Disease Prediction</Text>
+          <Text style={styles.headerText}>{t('image.title')}</Text>
 
           <TouchableOpacity
             style={styles.imageWrapper}
@@ -199,31 +187,141 @@ export default function ImageScreen(props) {
             )}
 
             {!imageToAnalyze && (
-              <Text style={styles.transparentText}>Tap to choose image</Text>
+              <Text style={styles.transparentText}>{t('image.chooseimage')}</Text>
             )}
           </TouchableOpacity>
           <View style={styles.predictionWrapper}>
+          {predictions &&
+              predictions?.length &&
+              (<View><Text style={styles.textHead}>
+              Prediction Result:
+                </Text>
+                <Text style={styles.text}>
+                {t('image.chances0')}{Math.floor(predictions[index] * 100)} % {t('image.chances1')}
+                </Text>
+               
+                {index == 0 &&
+                <Text style={styles.textDisease}>
+                
+                {t('disease0.name')}
+                </Text>
+                }
+                {index == 1 &&
+                <Text style={styles.textDisease}>
+                
+                {t('disease1.name')}
+                </Text>
+                }
+                {index == 2 &&
+                <Text style={styles.textDisease}>
+                
+                {t('disease2.name')}
+                </Text>
+                }
+              
+                
+                
+                </View>)        
+            }
+            
             {imageToAnalyze && (
-              <Text style={styles.text}>
+              <Text style={styles.textHead}>
                 Predictions: {predictions ? "" : "Predicting..."}
               </Text>
             )}
 
             {predictions &&
               predictions?.length &&
-              console.log("=== Detect foods predictions: ===")}
-
-              <Text style={styles.text}>
-              Foot-and-mouth disease : {Math.ceil(predictions[0] * 100)} %
+              (<View><Text style={styles.text}>
+               {t('disease0.name')} : {Math.floor(predictions[0] * 100)} %
                 </Text>
                 <Text style={styles.text}>
-              Infectious Bovine Keratoconjunctivitis : {Math.ceil(predictions[1] * 100)} %
+                {t('disease1.name')} : {Math.floor(predictions[1] * 100)} %
                 </Text>
+                
                 <Text style={styles.text}>
-              lysergic acid diethylamide : {Math.ceil(predictions[2] * 100)} %
+                {t('disease2.name')} : {Math.floor(predictions[2] * 100)} %
                 </Text>
+                </View>)        
+            }
 
-            
+          {predictions &&
+              predictions?.length &&
+              (<View>
+                <View><Text style={styles.textHead}>
+                {t('image.description')} :
+                </Text>
+                {index == 0 &&
+                <Text style={styles.text}>
+                
+                {t('disease0.description')}
+                </Text>
+                }
+                {index == 1 &&
+                <Text style={styles.text}>
+                
+                {t('disease1.description')}
+                </Text>
+                }
+                {index == 2 &&
+                <Text style={styles.text}>
+                
+                {t('disease2.description')}
+                </Text>
+                }
+                </View>
+
+                <View><Text style={styles.textHead}>
+               {t('image.symptoms')} :
+                </Text>
+                {index == 0 &&
+                <Text style={styles.text}>
+                
+                {t('disease0.symptoms')}
+                </Text>
+                }
+                {index == 1 &&
+                <Text style={styles.text}>
+                
+                {t('disease1.symptoms')}
+                </Text>
+                }
+                {index == 2 &&
+                <Text style={styles.text}>
+                
+                {t('disease2.symptoms')}
+                </Text>
+                }
+                </View>
+
+
+                <View><Text style={styles.textHead}>
+                {t('image.treatment')} :
+                </Text>
+                {index == 0 &&
+                <Text style={styles.text}>
+                
+                {t('disease0.treatment')}
+                </Text>
+                }
+                {index == 1 &&
+                <Text style={styles.text}>
+                
+                {t('disease1.treatment')}
+                </Text>
+                }
+                {index == 2 &&
+                <Text style={styles.text}>
+                
+                {t('disease2.treatment')}
+                </Text>
+                }
+                </View>
+                </View>)        
+            }
+
+
+
           </View>
         </View>
       </ScrollView>
@@ -235,6 +333,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     
+  },
+  textDisease: {
+    marginTop: 10,
+    fontSize: 18,
+    fontWeight: "bold",
+    color:'#b68873',
+   
+    width:'90%',
+    
+
   },
   welcomeContainer: {
     alignItems: "center",
@@ -250,9 +358,23 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color:'#b68873'
   },
+  textHead: {
+    fontWeight:"bold",
+    marginTop:50,
+    width:'90%',
+    fontSize: 20,
+    color:'#b68873',
+    alignItems:"flex-start"
+  },
   text: {
+    marginTop:10,
     fontSize: 16,
-    color:'white'
+    width:'90%',
+    color:'white',
+    alignItems:"flex-start"
+  },
+  card: {
+    
   },
   imageWrapper: {
     width: 300,
@@ -273,10 +395,13 @@ const styles = StyleSheet.create({
   predictionWrapper: {
     width: "100%",
     flexDirection: "column",
-    alignItems: "center",
+    marginStart:50
+  
+   
     
   },
   transparentText: {
     opacity: 0.8,
+    color:'white'
   },
 });
