@@ -1,0 +1,10 @@
+Install Yarn: npm install -g yarn
+Install Packages(if not): yarn install
+Run Application Server: yarn start
+Build Apk file: expo build:android -t apk
+https://docs.expo.dev/classic/building-standalone-apps/
+For IOS: expo build:ios -t simulator
+
+Expo app link: https://play.google.com/store/apps/details?id=host.exp.exponent&hl=en&gl=US
+
+Firebase:https://console.firebase.google.com/u/
