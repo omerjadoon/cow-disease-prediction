@@ -46,7 +46,8 @@ i18n
                 chances1:'chances to have ',
                 description:'Description',
                 symptoms:'Symptoms',
-                treatment:'Treatment'
+                treatment:'Treatment',
+                loadingmodel:'Please wait while model is loading'
 
               },
               disease0:{

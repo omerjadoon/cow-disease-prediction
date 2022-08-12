@@ -13,7 +13,7 @@ import { Camera, CameraType } from 'expo-camera';
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
    
-
+import AnimatedLoader from "react-native-animated-loader";
 import * as jpeg from "jpeg-js";
 
 export default function ImageScreen(props) {
@@ -25,6 +25,7 @@ export default function ImageScreen(props) {
 
   var [model, setModel] = useState(null);
   const [tfReady, setTfReady] = useState(false);
+  const [isModelLoading, setIsModelLoading] = useState(false);
   const [hasPermission, setHasPermission] = useState(false);
   var [isModelReady, setIsModelReady] = useState(false);
   const [predictions, setPredictions] = useState(null);
@@ -48,13 +49,14 @@ export default function ImageScreen(props) {
 
       (async () => {
         try {
-        
+        setIsModelLoading(true)
          model = await tf.loadLayersModel(
             bundleResourceIO(modelJSON, modelWeights)
           );
           setModel(model)
           setIsModelReady(true)
           console.log("Model loaded");
+          setIsModelLoading(false)
         } catch (e) {
           console.log(e);
         }
@@ -166,6 +168,7 @@ export default function ImageScreen(props) {
         <View style={styles.welcomeContainer}>
           <Text style={styles.headerText}>{t('image.title')}</Text>
 
+{!isModelLoading &&
           <TouchableOpacity
             style={styles.imageWrapper}
             onPress={isModelReady ? selectImageAsync : undefined}
@@ -190,6 +193,22 @@ export default function ImageScreen(props) {
               <Text style={styles.transparentText}>{t('image.chooseimage')}</Text>
             )}
           </TouchableOpacity>
+}
+
+{isModelLoading && (
+  <View>
+    <AnimatedLoader
+        visible={true}
+        overlayColor="rgba(0,0,0,0.25)"
+        source={require("./loader.json")}
+        animationStyle={styles.lottie}
+        speed={1}
+      ></AnimatedLoader>
+              <Text style={styles.textHead}>
+                {t('image.loadingmodel')}
+              </Text>
+              </View>
+            )}
           <View style={styles.predictionWrapper}>
           {predictions &&
               predictions?.length &&
@@ -372,6 +391,10 @@ const styles = StyleSheet.create({
     width:'90%',
     color:'white',
     alignItems:"flex-start"
+  },
+  lottie: {
+    width: 100,
+    height: 100
   },
   card: {
     
