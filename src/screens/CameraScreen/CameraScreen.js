@@ -1,6 +1,6 @@
 import {bundleResourceIO, decodeJpeg} from "@tensorflow/tfjs-react-native";
-import React, { useEffect, useState } from 'react'
-import { FlatList, Keyboard, Text, TextInput, TouchableOpacity, View, Image, ScrollView, StyleSheet } from 'react-native'
+import React, { useEffect, useState, useRef  } from 'react'
+import { FlatList, Keyboard, Text, TextInput,Button, TouchableOpacity, View, Image, ScrollView, StyleSheet } from 'react-native'
 
 import { firebase } from '../../firebase/config'
 import camera from '../../../assets/camera.png'
@@ -12,13 +12,18 @@ import { ImageBackground } from 'react-native-web';
 import { Camera, CameraType } from 'expo-camera';
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
-
    
-
+import AnimatedLoader from "react-native-animated-loader";
 import * as jpeg from "jpeg-js";
+import Icon from "react-native-ionicons";
+
 
 export default function CameraScreen(props) {
 
+  const [type, setType] = useState(CameraType.back);
+  const [permission, requestPermission] = useState(null);
+
+  const ref = useRef(null)
   //Loading model from models folder
   const modelJSON = require("../../../model/model.json");
   const modelWeights = require("../../../model/group1.bin");
@@ -26,53 +31,44 @@ export default function CameraScreen(props) {
 
   var [model, setModel] = useState(null);
   const [tfReady, setTfReady] = useState(false);
-  const [hasPermission, setHasPermission] = useState(false);
+  const [isModelLoading, setIsModelLoading] = useState(false);
   var [isModelReady, setIsModelReady] = useState(false);
   const [predictions, setPredictions] = useState(null);
   const [imageToAnalyze, setImageToAnalyze] = useState(null);
   
-  
-    
+  var [index, setIndex] = useState(null);
+  const [isPredicting, setIsPredicting] = useState(false);
 
     const { t, i18n } = useTranslation();
-    const [entityText, setEntityText] = useState('')
-    const [entities, setEntities] = useState([])
+    
 
     const entityRef = firebase.firestore().collection('entities')
     const user = firebase.auth().currentUser;
 
-
-    const imageToTensor = (rawImageData) => {
-      const { width, height, data } = jpeg.decode(rawImageData, {
-        useTArray: true,
-      }); // return as Uint8Array
-  
-      // Drop the alpha channel info for mobilenet
-      const buffer = new Uint8Array(width * height * 3);
-      let offset = 0; // offset into original data
-      for (let i = 0; i < buffer.length; i += 3) {
-        buffer[i] = data[offset];
-        buffer[i + 1] = data[offset + 1];
-        buffer[i + 2] = data[offset + 2];
-  
-        offset += 4;
-      }
-  
-      return tf.tensor3d(buffer, [height, width, 3]);
-    };
+    function toggleCameraType() {
+      setType((current) => (
+        current === CameraType.back ? CameraType.front : CameraType.back
+      ));
+    }
+    
+   
+    
+    
 
     useEffect(() => {
       
-
+      console.log("useEffect..");
       (async () => {
         try {
-        
+          console.log("Model loading..");
+        setIsModelLoading(true)
          model = await tf.loadLayersModel(
             bundleResourceIO(modelJSON, modelWeights)
           );
           setModel(model)
           setIsModelReady(true)
           console.log("Model loaded");
+          setIsModelLoading(false)
         } catch (e) {
           console.log(e);
         }
@@ -82,18 +78,23 @@ export default function CameraScreen(props) {
         setTfReady(true);
       })();
 
-
-      const getPermissionAsync = async () => {
-        if (Platform.OS !== "web") {
-          const {
-            status,
-          } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-          if (status !== "granted") {
-            alert("Sorry, we need gallery permissions to make this work!");
-          }
-        }
-      };
-      getPermissionAsync();
+      (async () => {
+      await requestPermission(Camera.useCameraPermissions())
+      if (!permission.granted) {
+   
+       // Camera permissions are not granted yet
+       return (
+         <View style={styles.container}>
+           <Text style={{ textAlign: 'center' }}>
+             We need your permission to show the camera
+           </Text>
+           <Button onPress={Camera.useCameraPermissions()} title="grant permission" />
+         </View>
+       );
+     }
+    })();
+    
+      
     }, []);
 
     // const classifyImageAsync = async (source) => {
@@ -109,19 +110,17 @@ export default function CameraScreen(props) {
     //     console.log("Exception Error: ", error);
     //   }
     // };
-    const selectImageAsync = async () => {
+    const predictImageAsync = async () => {
       try {
-        let response = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.All,
-          allowsEditing: true,
-          aspect: [1, 1],
-        });
-  
-        if (!response.cancelled) {
+       
+        setIsPredicting(true)
+        if(imageToAnalyze ){
+          console.log(isModelReady)
+          
           // resize image to avoid out of memory crashes
           const manipResponse = await ImageManipulator.manipulateAsync(
-            response.uri,
-            [{ resize: { width: 224, height : 224 } }],
+            imageToAnalyze.uri,
+            [{ resize: { width: 64, height : 64 } }],
             {
               compress: 1,
               format: ImageManipulator.SaveFormat.JPEG,
@@ -129,25 +128,55 @@ export default function CameraScreen(props) {
             }
           );
   
+          console.log(manipResponse.uri)
           const source = { uri: manipResponse.uri };
-          setImageToAnalyze(source);
+          //setImageToAnalyze(source);
           setPredictions(null);
           //await classifyImageAsync(source);
           const b = Buffer.from(manipResponse.base64, "base64");
           //const imageData = new Uint8Array(manipResponse.base64);
           const imageTensor = decodeJpeg(b).expandDims(0);
-          
+          console.log(imageTensor)
           //const imageTensor = imageToTensor();
           const pred = await model.predict(imageTensor).data()
           // send base64 version to clarifai
           setPredictions(pred)
           console.log(pred);
+          const max = Math.max.apply(null, pred);
+          
+          const index = pred.indexOf(max);
+          setIndex(index)
+
+          
+          setIsPredicting(false)
+
+          // send data to firebase
+
+          props.navigation.navigate('Report', {
+            index: index,
+            predictions:pred,
+          })
+
+          
         }
       } catch (error) {
         console.log(error);
       }
     };
 
+    async function snapPhoto() {       
+      console.log('Button Pressed');
+      
+         console.log('Taking photo');
+         const options = { quality: 1, base64: true, fixOrientation: true, 
+         exif: true};
+         await ref.current.takePictureAsync({ skipProcessing: true }).then(photo => {
+            //photo.exif.Orientation = 1;            
+             console.log(photo);   
+             setImageToAnalyze(photo)         
+             });     
+  
+      }
     // useEffect(() => {
     //     (async () => {
     //       const { status } = await Camera.requestCameraPermissionsAsync();
@@ -172,119 +201,69 @@ export default function CameraScreen(props) {
 
     return (
       <View style={styles.container}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.contentContainer}
-      >
-        <View style={styles.welcomeContainer}>
-          <Text style={styles.headerText}>Cow Disease Prediction</Text>
-          <Camera
-    style={{flex: 1,width:"100%"}}
-    ref={(r) => {
-    camera = r
-    }}
-    ></Camera>
-
+      <Camera style={styles.camera} type={type} ref={ref}>
+        <View style={styles.buttonContainer}>
+        {(!imageToAnalyze && isModelReady) &&
           <TouchableOpacity
-            style={styles.imageWrapper}
-            onPress={isModelReady ? selectImageAsync : undefined}
-          >
-            {imageToAnalyze && (
-              <View style={{ position: "relative" }}>
-                <View
-                  style={{
-                    zIndex: 0,
-                    elevation: 0,
-                  }}
-                >
-                  <Image
-                    source={imageToAnalyze}
-                    style={styles.imageContainer}
-                  />
-                </View>
-              </View>
-            )}
-
-            {!imageToAnalyze && (
-              <Text style={styles.transparentText}>Tap to choose image</Text>
-            )}
+            style={styles.button}
+            onPress={snapPhoto}>
+              
+              
+            <Text style={styles.text}>Capture Picture</Text>
           </TouchableOpacity>
-          <View style={styles.predictionWrapper}>
-            {imageToAnalyze && (
-              <Text style={styles.text}>
-                Predictions: {predictions ? "" : "Predicting..."}
-              </Text>
-            )}
-
-            {predictions &&
-              predictions?.length &&
-              (<Text><Text style={styles.text}>
-              Foot-and-mouth disease : {Math.ceil(predictions[0] * 100)} %
-                </Text>
-                <Text style={styles.text}>
-              Infectious Bovine Keratoconjunctivitis : {Math.ceil(predictions[1] * 100)} %
-                </Text>
-                
-                <Text style={styles.text}>
-              lysergic acid diethylamide : {Math.ceil(predictions[2] * 100)} %
-                </Text>
-                </Text>)
-
 }
-          </View>
+          {(imageToAnalyze && isModelReady) &&
+          <TouchableOpacity
+          style={styles.button}
+          onPress={predictImageAsync}>
+          <Text style={ styles.text}>Predict Disease</Text>
+          </TouchableOpacity>
+}
+
+        
         </View>
-      </ScrollView>
+        {(!isModelReady || isPredicting) &&
+           <AnimatedLoader
+           visible={true}
+           overlayColor="rgba(0,0,0,0.25)"
+           source={require("../ImageScreen/loader.json")}
+           animationStyle={styles.lottie}
+           speed={1}
+         ></AnimatedLoader>
+}
+      </Camera>
+      
     </View>
     )
 }
+
+
 const styles = StyleSheet.create({
- 
   container: {
     flex: 1,
-    
+    justifyContent: 'center',
   },
-  welcomeContainer: {
-    alignItems: "center",
-    marginTop: 10,
-    marginBottom: 20,
+  camera: {
+    flex: 1,
   },
-  contentContainer: {
-    paddingTop: 30,
+  buttonContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: 'transparent',
+    margin: 64,
   },
-  headerText: {
-    marginTop: 5,
-    fontSize: 20,
-    fontWeight: "bold",
-    color:'#b68873'
+  button: {
+    backgroundColor:'#b68873',
+    borderRadius:20,
+    marginRight:10,
+    padding:10,
+    flex: 1,
+    alignSelf: 'flex-end',
+    alignItems: 'center',
   },
   text: {
-    marginTop:20,
-    fontSize: 16,
-    color:'white'
-  },
-  imageWrapper: {
-    width: 300,
-    height: 300,
-    borderColor: "#b68873",
-    borderWidth: 3,
-    borderStyle: "dashed",
-    marginTop: 40,
-    marginBottom: 10,
-    position: "relative",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  imageContainer: {
-    width: 280,
-    height: 280,
-  },
-  predictionWrapper: {
-    width: "100%",
-    flexDirection: "column",
-    alignItems: "center",
-    
-  },
-  transparentText: {
-    opacity: 0.8,
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'white',
   },
 });

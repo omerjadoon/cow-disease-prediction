@@ -68,7 +68,7 @@ export default function HomeScreen(props) {
             <View style={styles.mainContainer}>
                 
                 <Box title={t('home.detectfromsymptoms')} imgpath='1'></Box>
-                <Box title={t('home.detectusingcamera')} imgpath='2'></Box>
+                <Box title={t('home.detectusingcamera')} onPress={goToCameraScreen} imgpath='2'></Box>
                 <Box title={t('home.detectusingimage')} onPress={goToImageScreen} imgpath='3'></Box>
                 <Box title={t('home.pastdetections')} imgpath='4'></Box>
                 <Box title={t('home.settings')} imgpath='5'></Box>

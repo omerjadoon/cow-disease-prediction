@@ -17,6 +17,7 @@ import { useTranslation, Trans } from 'react-i18next';
 import ImageScreen from './src/screens/ImageScreen/ImageScreen';
 import { AppRegistry } from 'react-native-web';
 import CameraScreen from './src/screens/CameraScreen/CameraScreen';
+import ReportScreen from './src/screens/ReportScreen/ReportScreen';
 
 
 const Stack = createStackNavigator();
@@ -82,7 +83,7 @@ export default function App() {
       }}
       >
         
-        <Stack.Screen name="Change Language" component={LanguageScreen} />
+        <Stack.Screen name="Select Language" component={LanguageScreen} />
       
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Registration" component={RegistrationScreen} />
@@ -91,8 +92,28 @@ export default function App() {
             {props => <HomeScreen {...props}  />}
         </Stack.Screen>
 
-        <Stack.Screen name="Image" component={ImageScreen} />
-        <Stack.Screen name="Camera" component={CameraScreen} />
+        <Stack.Screen name="Image" component={ImageScreen} options={{
+          title: 'Prediction from Image', //Set Header Title
+          headerStyle: {
+            backgroundColor: '#b68873', //Set Header color
+          },
+          headerTintColor: '#fff', //Set Header text color
+          headerTitleStyle: {
+            fontWeight: 'bold', //Set Header text style
+          },
+        }}/>
+        <Stack.Screen name="Camera" component={CameraScreen}
+        options={{
+          title: 'Prediction using Camera', //Set Header Title
+          headerStyle: {
+            backgroundColor: '#b68873', //Set Header color
+          },
+          headerTintColor: '#fff', //Set Header text color
+          headerTitleStyle: {
+            fontWeight: 'bold', //Set Header text style
+          },
+        }} />
+        <Stack.Screen name="Report" component={ReportScreen} />
         
        
         

@@ -1,6 +1,7 @@
 import {bundleResourceIO, decodeJpeg} from "@tensorflow/tfjs-react-native";
 import React, { useEffect, useState } from 'react'
-import { FlatList, Keyboard, Text, TextInput, TouchableOpacity, View, Image, ScrollView, StyleSheet } from 'react-native'
+import { FlatList, Keyboard, Text, TextInput, TouchableOpacity,
+    BackHandler, View, Image, ScrollView, StyleSheet } from 'react-native'
 
 import { firebase } from '../../firebase/config'
 import camera from '../../../assets/camera.png'
@@ -16,152 +17,39 @@ import * as ImageManipulator from "expo-image-manipulator";
 import AnimatedLoader from "react-native-animated-loader";
 import * as jpeg from "jpeg-js";
 
-export default function ImageScreen(props) {
+export default function ReportScreen(props) {
 
   //Loading model from models folder
   const modelJSON = require("../../../model/model.json");
   const modelWeights = require("../../../model/group1.bin");
  
 
-  var [model, setModel] = useState(null);
-  const [tfReady, setTfReady] = useState(false);
-  const [isModelLoading, setIsModelLoading] = useState(false);
-  const [hasPermission, setHasPermission] = useState(false);
-  var [isModelReady, setIsModelReady] = useState(false);
-  const [predictions, setPredictions] = useState(null);
-  const [imageToAnalyze, setImageToAnalyze] = useState(null);
+ 
   
-  var [index, setIndex] = useState(null);
+  
+  const index = props.route.params.index
+  console.log(props.route.params.index)
+
+  const predictions = props.route.params.predictions
+
     
-
     const { t, i18n } = useTranslation();
-    const [entityText, setEntityText] = useState('')
-    const [entities, setEntities] = useState([])
 
-    const entityRef = firebase.firestore().collection('entities')
-    const user = firebase.auth().currentUser;
-
-
-     
 
     useEffect(() => {
-      
-
-      (async () => {
-        try {
-        setIsModelLoading(true)
-         model = await tf.loadLayersModel(
-            bundleResourceIO(modelJSON, modelWeights)
-          );
-          setModel(model)
-          setIsModelReady(true)
-          console.log("Model loaded");
-          setIsModelLoading(false)
-        } catch (e) {
-          console.log(e);
-        }
-      })();
-      (async () => {
-        await tf.ready();
-        setTfReady(true);
-      })();
-
-
-      const getPermissionAsync = async () => {
-        if (Platform.OS !== "web") {
-          const {
-            status,
-          } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-          if (status !== "granted") {
-            alert("Sorry, we need gallery permissions to make this work!");
-          }
-        }
-      };
-      getPermissionAsync();
-    }, []);
-
-    // const classifyImageAsync = async (source) => {
-    //   try {
-    //     const imageAssetPath = Image.resolveAssetSource(source);
-    //     const response = await fetch(imageAssetPath.uri, {}, { isBinary: true });
-    //     const rawImageData = await response.arrayBuffer();
-    //     console.log(rawImageData)
-    //     const imageTensor = imageToTensor(rawImageData);
-    //     const newPredictions = await model.current.classify(imageTensor);
-    //     setPredictions(newPredictions);
-    //   } catch (error) {
-    //     console.log("Exception Error: ", error);
-    //   }
-    // };
-    const selectImageAsync = async () => {
-      try {
-        let response = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.All,
-          allowsEditing: true,
-          aspect: [1, 1],
-        });
-  
-        if (!response.cancelled) {
-          // resize image to avoid out of memory crashes
-          const manipResponse = await ImageManipulator.manipulateAsync(
-            response.uri,
-            [{ resize: { width: 64, height : 64 } }],
-            {
-              compress: 1,
-              format: ImageManipulator.SaveFormat.JPEG,
-              base64: true,
-            }
-          );
-  
-          const source = { uri: manipResponse.uri };
-          setImageToAnalyze(source);
-          setPredictions(null);
-          //await classifyImageAsync(source);
-          const b = Buffer.from(manipResponse.base64, "base64");
-          //const imageData = new Uint8Array(manipResponse.base64);
-          const imageTensor = decodeJpeg(b).expandDims(0);
-          
-          //const imageTensor = imageToTensor();
-          const pred = await model.predict(imageTensor).data()
-          // send base64 version to clarifai
-          setPredictions(pred)
-          console.log(pred);
-          const max = Math.max.apply(null, pred);
-          
-          const index = pred.indexOf(max);
-          setIndex(index)
-
-
-          // send data to firebase
-
-          
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    // useEffect(() => {
-    //     (async () => {
-    //       const { status } = await Camera.requestCameraPermissionsAsync();
-    //       setHasPermission(status === "granted");
-    //     })();
-    //     (async () => {
-    //       try {
-    //        const model = await tf.loadLayersModel(
-    //           bundleResourceIO(modelJSON, modelWeights)
-    //         );
-    //         console.log("Model loaded");
-    //       } catch (e) {
-    //         console.log(e);
-    //       }
-    //     })();
-    //     (async () => {
-    //       await tf.ready();
-    //       setTfReady(true);
-    //     })();
-    //     // console.log(isTFReady);
-    //   }, []);
+        const backAction = () => {
+            props.navigation.navigate('Home')
+    
+          return true;
+        };
+    
+        const backHandler = BackHandler.addEventListener(
+          "hardwareBackPress",
+          backAction
+        );
+    
+        return () => backHandler.remove();
+      }, []);
 
     return (
       <View style={styles.container}>
@@ -172,48 +60,11 @@ export default function ImageScreen(props) {
         <View style={styles.welcomeContainer}>
           <Text style={styles.headerText}>{t('image.title')}</Text>
 
-{!isModelLoading &&
-          <TouchableOpacity
-            style={styles.imageWrapper}
-            onPress={isModelReady ? selectImageAsync : undefined}
-          >
-            {imageToAnalyze && (
-              <View style={{ position: "relative" }}>
-                <View
-                  style={{
-                    zIndex: 0,
-                    elevation: 0,
-                  }}
-                >
-                  <Image
-                    source={imageToAnalyze}
-                    style={styles.imageContainer}
-                  />
-                </View>
-              </View>
-            )}
 
-            {!imageToAnalyze && (
-              <Text style={styles.transparentText}>{t('image.chooseimage')}</Text>
-            )}
-          </TouchableOpacity>
-}
 
-{isModelLoading && (
-  <View>
-    <AnimatedLoader
-        visible={true}
-        overlayColor="rgba(0,0,0,0.25)"
-        source={require("./loader.json")}
-        animationStyle={styles.lottie}
-        speed={1}
-      ></AnimatedLoader>
-              <Text style={styles.textHead}>
-                {t('image.loadingmodel')}
-              </Text>
-              </View>
-            )}
+
           <View style={styles.predictionWrapper}>
+ 
           {predictions &&
               predictions?.length &&
               (<View><Text style={styles.textHead}>
@@ -247,11 +98,7 @@ export default function ImageScreen(props) {
                 </View>)        
             }
             
-            {imageToAnalyze && (
-              <Text style={styles.textHead}>
-                Predictions: {predictions ? "" : "Predicting..."}
-              </Text>
-            )}
+           
 
             {predictions &&
               predictions?.length &&
@@ -268,8 +115,8 @@ export default function ImageScreen(props) {
                 </View>)        
             }
 
-          {predictions &&
-              predictions?.length &&
+
+          {index &&
               (<View>
                 <View><Text style={styles.textHead}>
                 {t('image.description')} :
