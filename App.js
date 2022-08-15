@@ -113,6 +113,10 @@ export default function App() {
             fontWeight: 'bold', //Set Header text style
           },
         }} />
+
+<Stack.Screen name="Setting" component={ReportScreen} />
+<Stack.Screen name="History" component={ReportScreen} />
+
         <Stack.Screen name="Report" component={ReportScreen} />
         
        

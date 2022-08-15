@@ -31,7 +31,7 @@ export default function LoginScreen({navigation}) {
                     .get()
                     .then(firestoreDocument => {
                         if (!firestoreDocument.exists) {
-                            alert("User does not exist anymore.")
+                            alert("User does not exist. Please Register.")
                             return;
                         }
                         const user = firestoreDocument.data()

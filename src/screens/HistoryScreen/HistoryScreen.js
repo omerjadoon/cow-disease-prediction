@@ -8,7 +8,7 @@ import Box from '../../components/Box';
 import { useTranslation, Trans } from 'react-i18next';
 import { ImageBackground } from 'react-native-web';
 
-export default function HomeScreen(props) {
+export default function HistoryScreen(props) {
 
     const { t, i18n } = useTranslation();
     const [entityText, setEntityText] = useState('')
@@ -41,18 +41,7 @@ export default function HomeScreen(props) {
 
 const goToSettingScreen = () => {
         
-    props.navigation.navigate('Setting')
-
-}
-const goToHistoryScreen = () => {
-        
-    props.navigation.navigate('History')
-
-}
-
-const goToSymptomScreen = () => {
-        
-    props.navigation.navigate('Symptom')
+    props.navigation.navigate('Camera')
 
 }
 
@@ -85,10 +74,10 @@ const goToSymptomScreen = () => {
 
             <View style={styles.mainContainer}>
                 
-                <Box title={t('home.detectfromsymptoms')} onPress={goToSymptomScreen} imgpath='1'></Box>
+                <Box title={t('home.detectfromsymptoms')} imgpath='1'></Box>
                 <Box title={t('home.detectusingcamera')} onPress={goToCameraScreen} imgpath='2'></Box>
                 <Box title={t('home.detectusingimage')} onPress={goToImageScreen} imgpath='3'></Box>
-                <Box title={t('home.pastdetections')} onPress={goToHistoryScreen} imgpath='4'></Box>
+                <Box title={t('home.pastdetections')} imgpath='4'></Box>
                 <Box title={t('home.settings')} onPress={goToSettingScreen} imgpath='5'></Box>
                 <Box title={t('home.logout')} onPress={signOutUser} imgpath='6'></Box>
                 
