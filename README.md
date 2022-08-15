@@ -1,8 +1,8 @@
 ## Title
-Cow Disease Prediction using CNN ,Tensorflow JS and React Native.
+# Cow Disease Prediction using CNN ,Tensorflow JS and React Native.
 
 ## Description
-This is an cow disease classification react native mobile application that allows users to login and register in with an account and take photos of an cow and have it classified by a Tensorflow & CNN based model. This project was developed using React-Native, Firebase, and TensorflowJS. and model is trained on a custom CNN.
+This is an cow disease classification react native mobile application that allows users to login and register in with an account and take photos of an cow and have it classified by a Tensorflow & CNN based model. This project was developed using React-Native, Firebase, and TensorflowJS. and model is trained on a custom CNN. Also decision tree is used to predict the disease from symptoms
 
 Following diseases can be classifed using this application:
 ```
@@ -16,12 +16,26 @@ Following diseases can be classifed using this application:
 ![Screenshot](screenshots/screen1.jpeg) ![Screenshot](screenshots/screen2.jpeg)
 
 
+## Major Features
+```
+Classification using Image
+Classification using Camera
+Classification from Symptoms
+Login/Register using Firebase Authentication
+Multilingual Support (English & Urdu)
+Classification History (Firebase Database)
+
+...
+```
+
+
 ## STACK
 ```
 React-Native
 FireBase
-Convolutional Neural Network
+Keras (Convolutional Neural Network)
 Tensorflow.js
+Scikit Learn (Decision Tree)
 ...
 ```
 
