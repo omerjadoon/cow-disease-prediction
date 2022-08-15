@@ -12,10 +12,6 @@ Following diseases can be classifed using this application:
 ```
 
 
-## DEMO
-![Screenshot](screenshots/screen1.jpeg) ![Screenshot](screenshots/screen2.jpeg)
-
-
 ## Major Features
 ```
 Classification using Image
@@ -25,11 +21,9 @@ Login/Register using Firebase Authentication
 Multilingual Support (English & Urdu)
 Classification History (Firebase Database)
 
-...
 ```
 
-
-## STACK
+## Tech STACK
 ```
 React-Native
 FireBase
@@ -38,6 +32,14 @@ Tensorflow.js
 Scikit Learn (Decision Tree)
 ...
 ```
+
+## DEMO
+![Screenshot](screenshots/screen1.jpeg) ![Screenshot](screenshots/screen2.jpeg)
+
+
+
+
+
 
 ### Getting Started
 
